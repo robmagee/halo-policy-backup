@@ -57,7 +57,7 @@ def get_specific(host, authtoken, prox, savepath,data):
     policy_fw  = []
     policy_lids = []
     policy_se = []
-    print "here"
+
     for i in data['csm']:
         queryurl_csm = "/v1/policies/" + i
         csm = api.apihit(host, conntype, authtoken, queryurl_csm, reqbody,prox)
@@ -120,20 +120,20 @@ def localcommit(savepath):
     for file in os.listdir(path_csm):
         if os.stat(path_csm + "/" + file).st_size == 0:
             result = False
-            print file + " is empty"
+            print(file + " is empty")
 
     for file in os.listdir(path_fim):
         if os.stat(path_fim + "/" + file).st_size == 0:
             result = False
-            print file + " is empty"
+            print(file + " is empty")
     for file in os.listdir(path_fw):
         if os.stat(path_fw + "/" + file).st_size == 0:
             result = False
-            print file + "is empty"
+            print(file + "is empty")
     for file in os.listdir(path_lids):
         if os.stat(path_lids + "/" + file).st_size == 0:
             result = False
-            print file + " is empty"
+            print(file + " is empty")
     return result
 
 def remotepush(gitrepo, repocomment):

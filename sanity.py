@@ -11,15 +11,22 @@ def check_path(basepath):
     for t in types:
         paths[t] = bp + "/" + t
     for p in paths:
-        if os.path.isdir(paths[p]):
+        if os.path.isdir(p):
             pass
         else:
-            print "Path does not exist: " + paths[p]
-            sane = False
+            print("Path does not exist...creating " + p)
+            try:
+                curmask = os.umask(0)
+                os.makedirs(p, 0o770)
+            except os.error:
+                print('Insufficient rights to create sub directories.')
+                sane = False
+            finally:
+                os.umask(curmask)
         if os.access(paths[p], os.W_OK):
             pass
         else:
-            print "Path is not writeable: " + paths[p]
+            print("Path is not writeable: " + p)
             sane = False
     return(sane)
 
@@ -30,14 +37,14 @@ def config(fname):
     if fname["api_host"] not in apihost:
         sane = False
     elif fname["api_key"] is None or len(fname["api_key"]) != 8:
-        print "Make sure api_key is not empty and should contain 8 characters"
+        print("Make sure api_key is not empty and should contain 8 characters")
         sane = False
     elif fname["api_secret"] is None or len(fname["api_secret"]) != 32:
-        print "Make sure api_secret is not empty and should contain 32 characters"
+        print("Make sure api_secret is not empty and should contain 32 characters")
 
     if os.path.isdir(fname["repo_base_path"]):
         pass
     else:
-        print "Repo path does not exist"
+        print("Repo path does not exist")
         sane = False
     return(sane)

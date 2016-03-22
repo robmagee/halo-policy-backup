@@ -1,14 +1,15 @@
 #!/usr/bin/python
 #
 # DON'T FORGET TO SET THE API KEY/SECRET.
-
-
-import urllib
-import httplib
+import six
 import base64
 import json
-import urlparse
 import sys
+from encodings.utf_8 import encode
+from six.moves.urllib.parse import urlencode 
+from six.moves.http_client import HTTPSConnection
+from six.moves.urllib.parse import urlparse as parse
+
 
 def apihit(host,conntype,authtoken,queryurl,reqbody,prox):
     retdata = ''
@@ -18,10 +19,10 @@ def apihit(host,conntype,authtoken,queryurl,reqbody,prox):
         useproxy = False
 
     if useproxy == True:
-        connection = httplib.HTTPSConnection(prox['host'], prox['port'])
+        connection = HTTPSConnection(prox['host'], prox['port'])
         connection.set_tunnel(host, 443)
     else:
-        connection = httplib.HTTPSConnection(host)
+        connection = HTTPSConnection(host)
     tokenheader = {"Authorization": 'Bearer ' + authtoken, "Content-type": "application/json", "Accept": "text/plain"}
     if conntype == "GET":
         connection.request(conntype, queryurl, '', tokenheader)
@@ -32,8 +33,10 @@ def apihit(host,conntype,authtoken,queryurl,reqbody,prox):
     try:
         jsondata = respbody.decode()
         retdata = json.loads(jsondata)
+    except AttributeError:
+        retdata = json.loads(respbody)
     except:
-        retdata = respbody.decode()
+        raise
     connection.close()
     return retdata
 
@@ -44,24 +47,26 @@ def get_auth_token(host,clientid,clientsecret,prox):
     else:
         useproxy = False
     if useproxy == True:
-        connection = httplib.HTTPSConnection(prox['host'], prox['port'])
+        connection = HTTPSConnection(prox['host'], prox['port'])
         connection.set_tunnel(host, 443)
     else:
-        connection = httplib.HTTPSConnection(host)
-    authstring = "Basic " + base64.b64encode(clientid + ":" + clientsecret)
+        connection = HTTPSConnection(host)
+    authtoken = base64.b64encode(six.b('{0}:{1}'.format(clientid, clientsecret)))
+    authstring = b"Basic %s" % (authtoken,)
+
     header = {"Authorization": authstring}
-    params = urllib.urlencode({'grant_type': 'client_credentials'})
+    params = urlencode({'grant_type': 'client_credentials'})
     connection.request("POST", queryurl, params, header)
     response = connection.getresponse()
-    jsondata =  response.read().decode()
-    data = json.loads(jsondata)
+    jsondata = bytes(response.read()).decode('utf-8')
+    data = json.loads(str(jsondata))
     try:
         if  data['access_token']:
             pass
     except:
-        print "We're having trouble getting a session token.  Please check your API key."
-        print "Error output: "
-        print data
+        print("We're having trouble getting a session token.  Please check your API key.")
+        print("Error output: ")
+        print(data)
         sys.exit()
     key = data['access_token']
     connection.close()

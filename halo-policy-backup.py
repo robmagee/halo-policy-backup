@@ -36,15 +36,15 @@ def main(argv):
     if localsuccess == False:
         sys.exit("Error message: Failure to write locally!")
     else:
-        print "Updated files written to disk."
+        print("Updated files written to disk.")
         remotesuccess = fn.remotepush(config["repo_base_path"], config["repo_commit_comment"])
-        print remotesuccess
+        print(remotesuccess)
 
 def parse_config(cli):
     config = {}
     for opt in cli:
         if opt == "config":
-            execfile(cli[opt], config)
+            exec(compile(open(cli[opt]).read(), cli[opt], 'exec'), config)
     config['prox'] = {'host': config['proxy_host'], 'port': config['proxy_port'] }
     return(config)
 
@@ -53,17 +53,17 @@ def parse_cli(argv):
     try:
         opts, args = getopt.getopt(argv, "hc", ["configFile="])
     except:
-        print usagetext
+        print(usagetext)
 
     if len(opts) == 0:
         cli_stuff["config"] = "config.conf"
     else:
         for opt, arg in opts:
             if opt == '-h':
-                print usagetext
+                print(usagetext)
             elif opt in ("-c", "--configFile"):
                 cli_stuff["config"] = arg
-    print cli_stuff
+    print(cli_stuff)
     return(cli_stuff)
 
 if __name__ == "__main__":
