@@ -1,4 +1,4 @@
-# halo-policy-backup
+# halo-policy-backup [![Build Status](https://travis-ci.org/robmagee/halo-policy-backup.svg?branch=master)](https://travis-ci.org/robmagee/halo-policy-backup)
 
 The script is to backup policies from each module in Halo. It is strongly recommended that you backup your policy before/after making any changes.
 
