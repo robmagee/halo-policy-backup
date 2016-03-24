@@ -1,11 +1,12 @@
 import unittest
-import sanity
 import os
 import shutil
 from os import path
 from six.moves import configparser
 from shutil import rmtree
 
+import fn
+import sanity
 
 class LocalTest(unittest.TestCase):
     '''
@@ -19,7 +20,7 @@ class LocalTest(unittest.TestCase):
         try:
             curmask = os.umask(0)
             os.makedirs(
-                self.sane_config.get('halo', 'repo_base_path'),
+                path.abspath(self.sane_config.get('halo', 'repo_base_path')),
                 0o770)
         except os.error as oe:
             print(oe.strerror)
@@ -86,12 +87,31 @@ class LocalTest(unittest.TestCase):
         result = sanity.check_path(hsection['repo_base_path'])
         self.assertTrue(result,
                         'The repo_base_path check failed.')
-        paths = [path.join(hsection['repo_base_path'], x)
+
+    def test_localcommit(self):
+        '''
+        Ensure the local commit can happen.
+        '''
+        repo_base_path = path.abspath(
+            self.sane_config.get(
+                'halo',
+                'repo_base_path'))
+        sanity.check_path(repo_base_path)
+        paths = [path.join(repo_base_path, x)
                  for x in ("fim",
                            "csm",
                            "firewall",
                            "lids")]
+        # create some junk files to commit
+        for p in paths:
+            f = open(path.join(p, 'test.txt'), 'w')
+            f.write('halo')
+            f.close()
+        fn.localcommit(repo_base_path)
+        fn.remotepush(repo_base_path, 'Halo Policy Backup Unit Test')
 
+suite = unittest.TestLoader().loadTestsFromTestCase(LocalTest)
+suite.sortTestMethodsUsing = None
 
 if __name__ == '__main__':
     unittest.main()
