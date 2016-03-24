@@ -36,7 +36,7 @@ class LocalTest(unittest.TestCase):
 
     @property
     def sane_config(self):
-        config = configparser.SafeConfigParser()
+        config = configparser.ConfigParser()
         config.add_section('halo')
         config.set('halo', 'api_host', 'api.cloudpassage.com')
         config.set('halo', 'api_key', '12345678')

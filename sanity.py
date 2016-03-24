@@ -56,7 +56,7 @@ def check_config(config):
         print(noe._get_message())
     except configparser.Error as e:
         sane = False
-        print(e._get_message())
+        print(e)
     return sane
 
 
