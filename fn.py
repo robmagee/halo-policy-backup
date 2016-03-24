@@ -5,7 +5,7 @@ import json
 import git
 from datetime import datetime
 
-def get_all_policies(host, authtoken, prox):
+def get_all_policies(host, authtoken, proxy_host=None, proxy_port=None):
     conntype = "GET"
     queryurl_csm = "/v1/policies"
     queryurl_fim = "/v1/fim_policies"
@@ -14,11 +14,11 @@ def get_all_policies(host, authtoken, prox):
     queryurl_SpecialEvent = "/v1/special_events_policies/"
     reqbody = ""
 
-    csm = api.apihit(host, conntype, authtoken, queryurl_csm, reqbody,prox)
-    fim = api.apihit(host, conntype, authtoken, queryurl_fim, reqbody,prox)
-    fw = api.apihit(host, conntype, authtoken, queryurl_fw, reqbody,prox)
-    lids = api.apihit(host, conntype, authtoken, queryurl_lids, reqbody,prox)
-    SpecialEvents = api.apihit(host, conntype, authtoken, queryurl_SpecialEvent, reqbody,prox)
+    csm = api.apihit(host, conntype, authtoken, queryurl_csm, reqbody,proxy_host, proxy_port)
+    fim = api.apihit(host, conntype, authtoken, queryurl_fim, reqbody,proxy_host, proxy_port)
+    fw = api.apihit(host, conntype, authtoken, queryurl_fw, reqbody,proxy_host, proxy_port)
+    lids = api.apihit(host, conntype, authtoken, queryurl_lids, reqbody,proxy_host, proxy_port)
+    SpecialEvents = api.apihit(host, conntype, authtoken, queryurl_SpecialEvent, reqbody,proxy_host, proxy_port)
 
     data = {}
     data_csm = []
@@ -47,7 +47,7 @@ def get_all_policies(host, authtoken, prox):
 
     return data
 
-def get_specific(host, authtoken, prox, savepath,data):
+def get_specific(host, authtoken, savepath, data, proxy_host=None, proxy_port=None):
     conntype ="GET"
     reqbody = ""
 
@@ -60,7 +60,7 @@ def get_specific(host, authtoken, prox, savepath,data):
 
     for i in data['csm']:
         queryurl_csm = "/v1/policies/" + i
-        csm = api.apihit(host, conntype, authtoken, queryurl_csm, reqbody,prox)
+        csm = api.apihit(host, conntype, authtoken, queryurl_csm, reqbody,proxy_host, proxy_port)
         name = csm['policy']['name'] + ".json"
         outcome = json.dumps(csm, indent = 2)
         path = savepath + "/csm"
@@ -70,7 +70,7 @@ def get_specific(host, authtoken, prox, savepath,data):
 
     for i in data['fim']:
         queryurl_fim = "/v1/fim_policies/" + i
-        fim = api.apihit(host, conntype, authtoken, queryurl_fim, reqbody,prox)
+        fim = api.apihit(host, conntype, authtoken, queryurl_fim, reqbody,proxy_host, proxy_port)
         name = fim['fim_policy']['name'] +".json"
         outcome = json.dumps(csm, indent = 2)
         path = savepath + "/fim"
@@ -80,7 +80,7 @@ def get_specific(host, authtoken, prox, savepath,data):
 
     for i in data['fw']:
         queryurl_fw = "/v1/firewall_policies/" + i
-        fw = api.apihit(host, conntype, authtoken, queryurl_fw, reqbody,prox)
+        fw = api.apihit(host, conntype, authtoken, queryurl_fw, reqbody,proxy_host, proxy_port)
         name = fw['firewall_policy']['name'] + ".json"
         outcome = json.dumps(fw, indent = 2)
         path = savepath + "/firewall"
@@ -90,22 +90,13 @@ def get_specific(host, authtoken, prox, savepath,data):
 
     for i in data['lids']:
         queryurl_lids = "/v1/lids_policies/" + i
-        lids = api.apihit(host, conntype, authtoken, queryurl_lids, reqbody,prox)
+        lids = api.apihit(host, conntype, authtoken, queryurl_lids, reqbody,proxy_host, proxy_port)
         name = lids['lids_policy']['name'] + ".json"
         outcome = json.dumps(lids, indent = 2)
         path = savepath + "/lids"
         completename = os.path.join(path, name)
         with open (completename, 'w') as outfile:
             outfile.write(outcome)
-
-
-    # for i in data['se']:
-    #     queryurl_SpecialEvent = "/v1/special_events_policies/" + i
-    #     se = api.apihit(host, conntype, authtoken, queryurl_SpecialEvent, reqbody,prox)
-    #     print se
-        # for entry in se['policy']:
-        #     name = entry['name']
-        # policy_se.append((name, se))
 
     return "Finished backing up all policies\n " + "Checking if the file is empty or not...."
 
@@ -137,14 +128,27 @@ def localcommit(savepath):
     return result
 
 def remotepush(gitrepo, repocomment):
-    repo = git.Repo(gitrepo)
+    try:
+        repo = git.Repo(gitrepo)
+        if len(repo.remotes) > 0:
+            repo.git.pull()
+    except git.exc.InvalidGitRepositoryError:
+        print('No git repo was available at {0}. '
+              'Creating...'.format(gitrepo))
+        repo = git.Repo.init(gitrepo)
+
     # Make sure we have the lastest version
-    repo.git.pull()
     repo.git.add('.')
-    if len(repocomment) < 1:
-        repo.git.commit(message= "back up at " + str(datetime.now()))
-    else:
+    repocomment = repocomment or \
+        "Automated back up at {0}".format(str(datetime.now()))
+    try:
         repo.git.commit(message = repocomment)
-    repo.git.push()
+    except git.exc.GitCommandError as gce:
+        if gce.status == 1:
+            pass
+        else:
+            raise
+    if len(repo.remotes) > 0:
+        repo.git.push()
     result = repo.git.status()
     return result

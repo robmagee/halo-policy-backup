@@ -11,15 +11,11 @@ from six.moves.http_client import HTTPSConnection
 from six.moves.urllib.parse import urlparse as parse
 
 
-def apihit(host,conntype,authtoken,queryurl,reqbody,prox):
+def apihit(host,conntype,authtoken,queryurl,reqbody,
+           proxy_host=None, proxy_port=None):
     retdata = ''
-    if (prox['host'] != '') and (prox['port'] != ''):
-        useproxy = True
-    else:
-        useproxy = False
-
-    if useproxy == True:
-        connection = HTTPSConnection(prox['host'], prox['port'])
+    if proxy_host and proxy_port:
+        connection = HTTPSConnection(proxy_host, proxy_port)
         connection.set_tunnel(host, 443)
     else:
         connection = HTTPSConnection(host)
@@ -40,20 +36,16 @@ def apihit(host,conntype,authtoken,queryurl,reqbody,prox):
     connection.close()
     return retdata
 
-def get_auth_token(host,clientid,clientsecret,prox):
+def get_auth_token(host, clientid, clientsecret, 
+                   proxy_host=None, proxy_port=None):
     queryurl = '/oauth/access_token'
-    if (prox['host'] != '') and (prox['port'] != ''):
-        useproxy = True
-    else:
-        useproxy = False
-    if useproxy == True:
-        connection = HTTPSConnection(prox['host'], prox['port'])
+    if proxy_host and proxy_port:
+        connection = HTTPSConnection(proxy_host, proxy_port)
         connection.set_tunnel(host, 443)
     else:
         connection = HTTPSConnection(host)
     authtoken = base64.b64encode(six.b('{0}:{1}'.format(clientid, clientsecret)))
     authstring = b"Basic %s" % (authtoken,)
-
     header = {"Authorization": authstring}
     params = urlencode({'grant_type': 'client_credentials'})
     connection.request("POST", queryurl, params, header)
