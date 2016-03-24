@@ -8,7 +8,7 @@ from six.moves import configparser
 
 def main(args, config):
     # get the default section from the config file
-    dsection = config._sections['default']
+    dsection = config._sections['halo']
 
     if sane(config):
         # Get API key, set in config structure
