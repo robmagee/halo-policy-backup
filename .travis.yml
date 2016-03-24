@@ -5,4 +5,4 @@ language: python
   - "3.4"
   - "3.5"
 install: pip install --user -r requirements.txt
-script: sudo python -m unittest test
+script: python -m unittest test
