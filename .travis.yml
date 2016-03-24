@@ -4,7 +4,5 @@ language: python
   - "3.3"
   - "3.4"
   - "3.5"
-install: 
-  - sudo pip install -r requirements.txt
-  - sudo pip install six
+install: pip install --user -r requirements.txt
 script: sudo python -m unittest test
