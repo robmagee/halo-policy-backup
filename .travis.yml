@@ -7,4 +7,4 @@ language: python
 install: 
   - sudo pip install -r requirements.txt
   - sudo pip install six
-script: python -m unittest test
+script: sudo python -m unittest test
