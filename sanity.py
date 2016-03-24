@@ -39,10 +39,10 @@ def check_config(config):
                "api.zink.cloudpassage.com"]
     try:
         # make sure all the values are there and the lenghts match
-        if not config.get("default", "api_host") in apihost and \
-            len(config.get('default', 'api_key')) == 8 and \
-            len(config.get('default', 'api_secret')) == 32:
-            raise Error('Ensure you have an 8 digit api_key, 32 digit api_secret '
+        if not config.get("default", "api_host") in apihost or \
+            len(config.get('default', 'api_key')) != 8 or\
+            len(config.get('default', 'api_secret')) != 32:
+            raise configparser.Error('Ensure you have an 8 digit api_key, 32 digit api_secret '
               'and a valid api_host entry in your config file.')
         # grab the configured path or use the current working directory
         repo_path = config.get("default", "repo_base_path") or "."
@@ -56,7 +56,7 @@ def check_config(config):
         print(noe._get_message())
     except configparser.Error as e:
         sane = False
-        print(noe._get_message())
+        print(e._get_message())
     return sane
 
 
