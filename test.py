@@ -35,7 +35,9 @@ class LocalTest(unittest.TestCase):
         finally:
             os.umask(curmask)
         self.key = os.environ.get('APIKEY')
+        print(self.key)
         self.secret = os.environ.get('APISECRET')
+        print(self.secret)
 
     def tearDown(self):
         '''
@@ -119,24 +121,26 @@ class LocalTest(unittest.TestCase):
         fn.localcommit(repo_base_path)
         fn.remotepush(repo_base_path, 'Halo Policy Backup Unit Test')
 
-#     def test_get_auth_token(self):
-#         '''
-#         Ensure that they auth token for further API calls can
-#         be retrieived.
-#         '''
-#         if self.secret:
-#             token = api.get_auth_token(self.sane_config.get('halo', 
-#                                                             'api_host'), 
-#                                self.key, 
-#                                self.secret)
-#             self.assertIsNotNone(token, 'Could not exectue the API using '
-#                                  'the key, secret and host provided.'
-#                                  )
-#         else:
-#             print('API Tests not available- no key or secret. Assign'
-#                   ' to the APIKEY and APISECRET environment variables '
-#                   'for use.')
-#             
+    def test_get_auth_token(self):
+        '''
+        Ensure that they auth token for further API calls can
+        be retrieved.
+        '''
+        if self.secret:
+            print('Key and Secret provided.  Executing call '
+                  'to get auth token.')
+            token = api.get_auth_token(self.sane_config.get('halo', 
+                                                            'api_host'), 
+                               self.key, 
+                               self.secret)
+            self.assertIsNotNone(token, 'Could not exectue the API using '
+                                 'the key, secret and host provided.'
+                                 )
+        else:
+            print('API Tests not available- no key or secret. Assign'
+                  ' to the APIKEY and APISECRET environment variables '
+                  'for use.')
+             
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(LocalTest)

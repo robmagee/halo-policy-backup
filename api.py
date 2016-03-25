@@ -53,13 +53,12 @@ def get_auth_token(host, clientid, clientsecret,
     jsondata = bytes(response.read()).decode('utf-8')
     data = json.loads(str(jsondata))
     try:
-        if  data['access_token']:
-            pass
-    except:
+        key = data['access_token']
+    except KeyError:
         print("We're having trouble getting a session token.  Please check your API key.")
         print("Error output: ")
         print(data)
         sys.exit()
-    key = data['access_token']
-    connection.close()
+    finally:
+        connection.close()
     return key
