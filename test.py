@@ -1,5 +1,6 @@
 import unittest
 import os
+import api
 import shutil
 from os import path
 from six.moves import configparser
@@ -7,12 +8,18 @@ from shutil import rmtree
 
 import fn
 import sanity
+from sys import stdout
 
 class LocalTest(unittest.TestCase):
     '''
     Tests the non-API aspects of the tool.
     '''
-
+    def __init__(self, methodName='runTest'):
+        unittest.TestCase.__init__(self, methodName=methodName)
+        self.auth_token = None
+        self.key = None
+        self.secret = None
+        
     def setUp(self):
         '''
         Create the test directory.
@@ -27,6 +34,8 @@ class LocalTest(unittest.TestCase):
             sane = False
         finally:
             os.umask(curmask)
+        self.key = os.environ.get('APIKEY')
+        self.secret = os.environ.get('APISECRET')
 
     def tearDown(self):
         '''
@@ -109,6 +118,26 @@ class LocalTest(unittest.TestCase):
             f.close()
         fn.localcommit(repo_base_path)
         fn.remotepush(repo_base_path, 'Halo Policy Backup Unit Test')
+
+    def test_get_auth_token(self):
+        '''
+        Ensure that they auth token for further API calls can
+        be retrieived.
+        '''
+        if self.secret:
+            token = api.get_auth_token(self.sane_config.get('halo', 
+                                                            'api_host'), 
+                               self.key, 
+                               self.secret)
+            self.assertIsNotNone(token, 'Could not exectue the API using '
+                                 'the key, secret and host provided.'
+                                 )
+        else:
+            print('API Tests not available- no key or secret. Assign'
+                  ' to the APIKEY and APISECRET environment variables '
+                  'for use.')
+            
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(LocalTest)
 suite.sortTestMethodsUsing = None
