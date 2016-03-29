@@ -22,7 +22,7 @@ def main(args, config):
              ("api_host", "auth_token",
               "proxy_host", "proxy_port")])
 
-        finalbundle = fn.get_specific(
+        fn.get_specific(
             dsection["api_host"],
             dsection["auth_token"],
             dsection["repo_base_path"] or ".",

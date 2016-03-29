@@ -16,7 +16,6 @@ class LocalTest(unittest.TestCase):
     '''
     def __init__(self, methodName='runTest'):
         unittest.TestCase.__init__(self, methodName=methodName)
-        self.auth_token = None
         self.key = None
         self.secret = None
         
@@ -121,6 +120,14 @@ class LocalTest(unittest.TestCase):
         fn.localcommit(repo_base_path)
         fn.remotepush(repo_base_path, 'Halo Policy Backup Unit Test')
 
+    @property
+    def auth_token(self):
+        token = api.get_auth_token(self.sane_config.get('halo', 'api_host'), self.key, 
+            self.secret)
+        self.assertIsNotNone(token, 'Could not exectue the API using '
+            'the key, secret and host provided.')
+        return token
+
     def test_get_auth_token(self):
         '''
         Ensure that they auth token for further API calls can
@@ -128,20 +135,50 @@ class LocalTest(unittest.TestCase):
         '''
         if self.secret:
             print('Key and Secret provided.  Executing call '
-                  'to get auth token.')
-            token = api.get_auth_token(self.sane_config.get('halo', 
-                                                            'api_host'), 
-                               self.key, 
-                               self.secret)
-            self.assertIsNotNone(token, 'Could not exectue the API using '
-                                 'the key, secret and host provided.'
-                                 )
+            'to get auth token.')
+            self.auth_token
         else:
             print('API Tests not available- no key or secret. Assign'
                   ' to the APIKEY and APISECRET environment variables '
                   'for use.')
              
 
+    @property
+    def policies(self):
+        dsection = self.sane_config._sections['halo']
+        dsection['auth_token'] = self.auth_token
+        infobundle = fn.get_all_policies(*[dsection[x] for x in 
+                ("api_host", "auth_token", 
+                    "proxy_host", "proxy_port")])
+        self.assertIsNotNone(infobundle, 'Could not execute the '
+            'get policy data apis.')
+        return infobundle
+
+    def test_get_policies(self):
+        '''
+        Run the list of policies to backup
+        '''
+        if self.secret:
+            infobundle = self.policies
+            return infobundle
+            
+    def test_get_policy_data(self):
+        '''
+        Back up the appropriate policies.
+        '''
+        if self.secret:
+            hsection = self.sane_config._sections['halo']
+            sanity.check_path(hsection['repo_base_path'])
+            dsection = self.sane_config._sections['halo']
+            dsection['auth_token'] = self.auth_token
+            fn.get_specific(
+            dsection["api_host"],
+            dsection["auth_token"],
+            dsection["repo_base_path"] or ".",
+            self.policies,
+            dsection["proxy_host"],
+            dsection["proxy_port"],
+            )
 
 suite = unittest.TestLoader().loadTestsFromTestCase(LocalTest)
 suite.sortTestMethodsUsing = None
