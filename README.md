@@ -1,4 +1,4 @@
-# halo-policy-backup [![Build Status](https://travis-ci.org/robmagee/halo-policy-backup.svg?branch=master)](https://travis-ci.org/robmagee/halo-policy-backup)
+# halo-policy-backup [![Build Status](https://travis-ci.org/robmagee/halo-policy-backup.svg?branch=master)](https://travis-ci.org/robmagee/halo-policy-backup)[![Coverage Status](https://coveralls.io/repos/github/robmagee/halo-policy-backup/badge.svg?branch=master)](https://coveralls.io/github/robmagee/halo-policy-backup?branch=master)
 
 The script is to backup policies from each module in Halo. It is strongly recommended that you backup your policy before/after making any changes.
 
